@@ -1,18 +1,12 @@
-#include "contiki.h"
-#include "sys/log.h"
-
-
-
-#define LOG_MODULE "Sensing Log"
-#define LOG_LEVEL LOG_LEVEL_DBG
+#include "rssi_messurment.h"
 
 /*----------------------------Build commands---------------------------------*/
 // Make and upload telos b
-// make TARGET=sky MOTES=/dev/ttyUSB0 knockDetector.upload login
+// make TARGET=sky MOTES=/dev/ttyUSB0 channel_sensing.upload login
 // Check serial port:
 // - make TARGET=sky motelist
 // compile and upload program
-//-  make TARGET=sky PORT=/dev/ttyUSB0 knockDetector.upload
+//-  make TARGET=sky PORT=/dev/ttyUSB0 channel_sensing.upload
 // ssh on the sensor
 // - make TARGET=sky PORT=/dev/ttyUSB0 login
 // Clean build
@@ -20,8 +14,9 @@
 // local sky build
 // - make TARGET=sky
 
-
-
+// Events
+static process_event_t start_meassuring_event;
+static process_event_t end_meassuring_event;
 
 /*----------------------------Processes--------------------------------------*/
 /*
@@ -29,39 +24,86 @@
 */
 PROCESS(main_process, "main_process");
 
+PROCESS(rssi_process, "rssi_process");
+
 AUTOSTART_PROCESSES(&main_process);
 /*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(main_process, ev, data)
 {
+
+  static struct etimer timer;
+  static int current_selected_channel;
+  static int channel_RSSI_dBm[MAX_CHANNELS];
+
   PROCESS_BEGIN();
   LOG_DBG("Init - main \n");
-  
-  clock_init(); 
 
-  // Time: 
-  // Time for N=512, M=120 = 13266 
-  // Transform ourput:
-  // [-55.7299 -13.1481 11.4102 27.5574 0.2031 -54.8691 15.624 38.5892 -10.9977 -23.3673 19.4073 34.9809 -1.9823 -4.5880 -12.630 26.5077 4.1679 7.5850 -24.7809 23.5875 5.1476 16.6236 -18.2881 11.6090 4.3780 19.7274 -9.4010 0.1979 0.3907 15.266 6.9046 -5.2302 0.5558 1.4048 17.3511 -3.5341 1.8438 -10.4653 16.1673 0.8541 8.7889 -15.2104 9.6350 0.269 15.1313 -13.142 0.9512 -1.6313 12.8897 -1.2672 -3.7378 -5.1374 5.2191 5.9423 -1.6002 -3.5663 -2.3659 6.6895 0.4297 1.1252 -7.3969 3.6526 0.3098 4.1433 -8.655 0.1701 -3.374 5.374 -5.2628 -1.391 -5.6327 4.231 -2.7806 0.1299 -6.3781 1.2616 -1.6479 0.7899 -4.1330 -1.5373 -1.6692 0.1123 -2.202 -2.2143 -1.4233 -2.2167 0.7314 -2.4272 0.9612 -3.0 0.2459 -2.8273 1.8449 -3.4999 1.1528 -2.1270 1.4890 -1.8878 0.5662 -1.5193 1.6175 -1.4388 0.4685 -1.3657 0.5289 0.2336 0.1056 0.9943 0.882 1.5904 0.3121 0.8891 0.2593 0.8125 0.8937 1.3912 0.4096 0.9583 0.4636 1.7285 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 ];
+  // init rssi module
+  init();
 
-  
-  // Time: 
-  // Time for N=256, M=75 = 12794 
-  // Transform ourput:
-  // [-55.7299 -13.1481 11.4102 27.5574 0.2031 -54.8691 15.624 38.5892 -10.9977 -23.3673 19.4073 34.9809 -1.9823 -4.5880 -12.630 26.5077 4.1679 7.5850 -24.7809 23.5875 5.1476 16.6236 -18.2881 11.6090 4.3780 19.7274 -9.4010 0.1979 0.3907 15.266 6.9046 -5.2302 0.5558 1.4048 17.3511 -3.5341 1.8438 -10.4653 16.1673 0.8541 8.7889 -15.2104 9.6350 0.269 15.1313 -13.142 0.9512 -1.6313 12.8897 -1.2672 -3.7378 -5.1374 5.2191 5.9423 -1.6002 -3.5663 -2.3659 6.6895 0.4297 1.1252 -7.3969 3.6526 0.3098 4.1433 -8.655 0.1701 -3.374 5.374 -5.2628 -1.391 -5.6327 4.231 -2.7806 0.1299 -6.3781 1.2616 -1.6479 0.7899 -4.1330 -1.5373 -1.6692 0.1123 -2.202 -2.2143 -1.4233 -2.2167 0.7314 -2.4272 0.9612 -3.0 0.2459 -2.8273 1.8449 -3.4999 1.1528 -2.1270 1.4890 -1.8878 0.5662 -1.5193 1.6175 -1.4388 0.4685 -1.3657 0.5289 0.2336 0.1056 0.9943 0.882 1.5904 0.3121 0.8891 0.2593 0.8125 0.8937 1.3912 0.4096 0.9583 0.4636 1.7285 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 ];
+  // alloc unique event ids
+  start_meassuring_event = process_alloc_event();
+  end_meassuring_event = process_alloc_event();
 
+  // wait for login from serial line
+  etimer_set(&timer, CLOCK_SECOND * 5);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
 
+  for (current_selected_channel = 11; current_selected_channel <= 26; current_selected_channel++)
+  {
+    // start rssi measuring process
+    process_start(&rssi_process, NULL);
+    // post channel to messaure to process
+    process_post(&rssi_process, start_meassuring_event, &current_selected_channel);
+    // wait for result
+    PROCESS_WAIT_EVENT_UNTIL(ev == end_meassuring_event);
+
+    int rssi_dBm_average_10 = *((int *)data);
+    channel_RSSI_dBm[current_selected_channel-11] = rssi_dBm_average_10;
+
+    printf("Channel %d Averege RSSI dBm %d \n", current_selected_channel, rssi_dBm_average_10);
+  }
+
+  int best_channel = select_best_channel(channel_RSSI_dBm);
+  printf("Best channel : %d \n", best_channel);
   LOG_DBG("Main finish \n");
-
-
   PROCESS_END();
 }
 
+PROCESS_THREAD(rssi_process, ev, data)
+{
 
+  static struct etimer timer;
+  static int rssi_dBm_sum;
+  static int counter;
+  static int selected_channel;
+  static int average_rssi_dBm;
 
+  PROCESS_BEGIN();
 
+  LOG_DBG("Init - rssi process \n");
+  // wait for event from main
+  PROCESS_WAIT_EVENT_UNTIL(ev == start_meassuring_event);
 
- 
+  selected_channel = *((int*) data);
+  printf("RSSI: selected channel %d \n", selected_channel);
 
+  rssi_dBm_sum = 0;
+  for (counter = 0; counter < 10; counter++)
+  {
+    // Messuage 10 samples, each within 100ms time slot (128 ticks)
+    etimer_set(&timer, (CLOCK_SECOND * 1) / 10);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+    etimer_reset(&timer);
 
+    rssi_dBm_sum = rssi_dBm_sum + get_rssi_dBm_from_channel(selected_channel);
+  }
 
+  // average the messured rssi values in dBm
+  average_rssi_dBm = rssi_dBm_sum / 10;
+  process_post(&main_process, end_meassuring_event, &average_rssi_dBm);
+
+  LOG_DBG("rssi process \n");
+  PROCESS_END();
+}
