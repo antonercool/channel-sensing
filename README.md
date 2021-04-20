@@ -31,7 +31,7 @@ To measure the measure the noise/inference signal strength of different channel 
     * The RSSI value is always averaged over 8 symbol periods (128 μs)
 Even tho cc2420_rssi() meassures over 8 symbol periods (128 μs), it only gives the signal indicater within that very short time. Instead it is decided to average 10 samples from cc2420_rssi() over at time period of 1 seconds (100 ms/128 clock ticks) between each sample, and average it. In the code the radio is turned on as little as possible, in order to save energy.
 
-### Task 3 - Select best ones
+### Task 3 - Select best channel
 
 *What is a good dBm* (ref https://www.metageek.com/training/resources/wifi-signal-strength-basics.html)
 dBm is meassured logarithmic, which means the scaling implies differently:
