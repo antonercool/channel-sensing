@@ -77,7 +77,7 @@ RSSI Measurement : channel 26 Averege RSSI dBm -86
 RSSI Measurement : Best channel = 14 
 [DBG : Sensing Log] Main finish 
 ```
-
+The algorithm selects the highest dBm meassured, to select channel
 
 
 
