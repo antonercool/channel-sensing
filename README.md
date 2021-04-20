@@ -17,7 +17,7 @@ datasheet CC2420 about how to convert the RSSI register value to the RSSI value 
 
 ![Screenshot](images/channels.PNG)
 
-### Task1 - Measure the noise/inference signal strength of different channel
+### Task1 & Task 2 - Measure the noise/inference signal strength of different channel
 To measure the measure the noise/inference signal strength of different channel we wil use the "CC2420.h" module. From the module we will use the following functions
 *  cc2420_init()            
     * init the cc2420 driver module
