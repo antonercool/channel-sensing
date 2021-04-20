@@ -14,6 +14,9 @@
 // local sky build
 // - make TARGET=sky
 
+// Globals 
+static int channel_RSSI_dBm[MAX_CHANNELS];
+
 // Events
 static process_event_t start_meassuring_event;
 static process_event_t end_meassuring_event;
@@ -23,9 +26,10 @@ static process_event_t end_meassuring_event;
     Holds the logic for communication between processes (Who starts when)
 */
 PROCESS(main_process, "main_process");
-
+/*
+    Holds the logic for measuring the average RSSI in dBm over 10 times slots of 100 ms (128 clock ticks)
+*/
 PROCESS(rssi_process, "rssi_process");
-
 AUTOSTART_PROCESSES(&main_process);
 /*---------------------------------------------------------------------------*/
 
@@ -34,7 +38,6 @@ PROCESS_THREAD(main_process, ev, data)
 
   static struct etimer timer;
   static int current_selected_channel;
-  static int channel_RSSI_dBm[MAX_CHANNELS];
 
   PROCESS_BEGIN();
   LOG_DBG("Init - main \n");
@@ -62,14 +65,14 @@ PROCESS_THREAD(main_process, ev, data)
     int rssi_dBm_average_10 = *((int *)data);
     channel_RSSI_dBm[current_selected_channel-11] = rssi_dBm_average_10;
 
-    printf("Channel %d Averege RSSI dBm %d \n", current_selected_channel, rssi_dBm_average_10);
+    printf("RSSI Measurement : channel %d Averege RSSI dBm %d \n", current_selected_channel, rssi_dBm_average_10);
   }
 
-  int best_channel = select_best_channel(channel_RSSI_dBm);
-  printf("Best channel : %d \n", best_channel);
+  select_best_channel(channel_RSSI_dBm);
   LOG_DBG("Main finish \n");
   PROCESS_END();
 }
+
 
 PROCESS_THREAD(rssi_process, ev, data)
 {
@@ -82,12 +85,11 @@ PROCESS_THREAD(rssi_process, ev, data)
 
   PROCESS_BEGIN();
 
-  LOG_DBG("Init - rssi process \n");
   // wait for event from main
   PROCESS_WAIT_EVENT_UNTIL(ev == start_meassuring_event);
 
   selected_channel = *((int*) data);
-  printf("RSSI: selected channel %d \n", selected_channel);
+  printf("RSSI Measurement : selected channel %d \n", selected_channel);
 
   rssi_dBm_sum = 0;
   for (counter = 0; counter < 10; counter++)
@@ -102,8 +104,8 @@ PROCESS_THREAD(rssi_process, ev, data)
 
   // average the messured rssi values in dBm
   average_rssi_dBm = rssi_dBm_sum / 10;
+  
   process_post(&main_process, end_meassuring_event, &average_rssi_dBm);
 
-  LOG_DBG("rssi process \n");
   PROCESS_END();
 }

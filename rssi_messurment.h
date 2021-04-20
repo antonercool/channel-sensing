@@ -1,7 +1,8 @@
 #include "contiki.h"
 #include "CC2420.h"
-#include <time.h>
 #include "sys/log.h"
+#include <limits.h>
+
 
 #define LOG_MODULE "Sensing Log"
 #define LOG_LEVEL LOG_LEVEL_DBG
@@ -30,15 +31,15 @@ int get_rssi_dBm_from_channel(int channel);
 
 
 /*
-    selects the best channel
+    Selects the best channel
 
     $$Params$$
         rssi_values_dBm : averaged rssi_dBm values from channels [11-26]
 
     $$return$$
-        return The RSSI value converted to dBm. The value is always averaged over 8 symbol periods (128 μs) 
+       void
 */
-int select_best_channel(int rssi_values_dBm[]);
+void select_best_channel(int rssi_values_dBm[]);
 
 
 /*--------------Implementation--------*/
@@ -74,9 +75,9 @@ int get_rssi_dBm_from_channel(int channel)
 }
 
 // does not work
-int select_best_channel(int rssi_values_dBm[])
+void select_best_channel(int rssi_values_dBm[])
 {
-    int best_rssi_dBm = -((2^16) - 1);
+    int best_rssi_dBm = rssi_values_dBm[0];
     int best_channel = 0;
     int i;  
     for (i = 0; i < MAX_CHANNELS; i++)
@@ -84,10 +85,10 @@ int select_best_channel(int rssi_values_dBm[])
         if(rssi_values_dBm[i] > best_rssi_dBm)
         {
             best_rssi_dBm = rssi_values_dBm[i];
-            best_channel = i + 1;
+            best_channel = 11 + i;
         }
     }
     
-    return best_channel; 
+    printf("RSSI Measurement : Best channel = %d \n", best_channel);
 }
 
