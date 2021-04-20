@@ -39,6 +39,45 @@ dBm is meassured logarithmic, which means the scaling implies differently:
 ![Screenshot](images/dBmRules.PNG)
 ![Screenshot](images/quality.PNG)
 
+The follwing output is meassured from the Telos B mote:
+```
+connecting to /dev/ttyUSB0 [OK]
+RSSI Measurement : selected channel 11 
+RSSI Measurement : channel 11 Averege RSSI dBm -87 
+RSSI Measurement : selected channel 12
+RSSI Measurement : channel 12 Averege RSSI dBm -88 
+RSSI Measurement : selected channel 13
+RSSI Measurement : channel 13 Averege RSSI dBm -84 
+RSSI Measurement : selected channel 14
+RSSI Measurement : channel 14 Averege RSSI dBm -78
+RSSI Measurement : selected channel 15
+RSSI Measurement : channel 15 Averege RSSI dBm -85
+RSSI Measurement : selected channel 16
+RSSI Measurement : channel 16 Averege RSSI dBm -86
+RSSI Measurement : selected channel 17
+RSSI Measurement : channel 17 Averege RSSI dBm -87
+RSSI Measurement : selected channel 18
+RSSI Measurement : channel 18 Averege RSSI dBm -86
+RSSI Measurement : selected channel 19
+RSSI Measurement : channel 19 Averege RSSI dBm -86
+RSSI Measurement : selected channel 20
+RSSI Measurement : channel 20 Averege RSSI dBm -86
+RSSI Measurement : selected channel 21
+RSSI Measurement : channel 21 Averege RSSI dBm -84
+RSSI Measurement : selected channel 22
+RSSI Measurement : channel 22 Averege RSSI dBm -85
+RSSI Measurement : selected channel 23
+RSSI Measurement : channel 23 Averege RSSI dBm -84
+RSSI Measurement : selected channel 24
+RSSI Measurement : channel 24 Averege RSSI dBm -84
+RSSI Measurement : selected channel 25 
+RSSI Measurement : channel 25 Averege RSSI dBm -85
+RSSI Measurement : selected channel 26 
+RSSI Measurement : channel 26 Averege RSSI dBm -86
+RSSI Measurement : Best channel = 14 
+[DBG : Sensing Log] Main finish 
+```
+
 
 
 
