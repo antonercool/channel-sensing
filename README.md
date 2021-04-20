@@ -14,7 +14,6 @@ noise/interference signal strength
 measure the RSSI value and how to deal with the measures in each channel. Please refer to the
 datasheet CC2420 about how to convert the RSSI register value to the RSSI value in dBm
 [CC2420 Datasheet](https://www.ti.com/product/CC2420)
-<<<<<<< Updated upstream
 
 ![Screenshot](images/channels.PNG)
 
@@ -77,7 +76,7 @@ RSSI Measurement : channel 26 Averege RSSI dBm -86
 RSSI Measurement : Best channel = 14 
 [DBG : Sensing Log] Main finish 
 ```
-The algorithm selects the highest dBm meassured, to select channel
+The algorithm selects the highest dBm meassured, to select channel **RSSI Measurement : Best channel = 14 **
 
 
 
