@@ -31,7 +31,7 @@ int get_rssi_dBm_from_channel(int channel);
 
 
 /*
-    Selects the best channel
+    Selects the best channel (heighest dBm)
 
     $$Params$$
         rssi_values_dBm : averaged rssi_dBm values from channels [11-26]
@@ -74,7 +74,6 @@ int get_rssi_dBm_from_channel(int channel)
     return current_RSSI_dBm;
 }
 
-// does not work
 void select_best_channel(int rssi_values_dBm[])
 {
     int best_rssi_dBm = rssi_values_dBm[0];
@@ -90,5 +89,6 @@ void select_best_channel(int rssi_values_dBm[])
     }
     
     printf("RSSI Measurement : Best channel = %d \n", best_channel);
+    cc2420_set_channel(best_channel);
 }
 

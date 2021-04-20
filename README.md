@@ -29,6 +29,7 @@ To measure the measure the noise/inference signal strength of different channel 
     * Get RSSI in dBm - The follwing convertion from the datasheet to get it in dBm is used: rssi_dBm = RSSI_VALUE + RSSI_OFFSET (can be seen in implementation file "CC2420.c)
     * The RSSI value is always averaged over 8 symbol periods (128 μs)
 Even tho cc2420_rssi() meassures over 8 symbol periods (128 μs), it only gives the signal indicater within that very short time. Instead it is decided to average 10 samples from cc2420_rssi() over at time period of 1 seconds (100 ms/128 clock ticks) between each sample, and average it. In the code the radio is turned on as little as possible, in order to save energy.
+<<<<<<< Updated upstream
 
 ### Task 3 - Select best channel
 
@@ -82,3 +83,5 @@ The algorithm selects the highest dBm meassured, to select channel **RSSI Measur
 
 
 
+=======
+>>>>>>> Stashed changes
